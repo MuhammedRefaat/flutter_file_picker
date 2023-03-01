@@ -548,8 +548,11 @@ didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls{
 }
 
 - (NSString *)uniqueFilenameWithPrefix:(NSString *)prefix {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"yyyyMMdd_HHmmss"];
+    NSString *dateString = [formatter stringFromDate:[NSDate date]];
     NSString *uniqueString = [[NSProcessInfo processInfo] globallyUniqueString];
-    return [NSString stringWithFormat:@"%@_%@", prefix, uniqueString];
+    return [NSString stringWithFormat:@"%@_%@_%@", prefix, dateString, uniqueString];
 }
 
 #endif // PHPicker
