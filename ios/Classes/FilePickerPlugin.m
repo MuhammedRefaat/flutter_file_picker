@@ -482,7 +482,6 @@ didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls{
                 NSArray * files = [fileManager contentsOfDirectoryAtURL:url includingPropertiesForKeys:@[] options:NSDirectoryEnumerationSkipsHiddenFiles error:nil];
                 
                 for (NSURL * item in files) {
-                    
                     if (UTTypeConformsTo(UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, CFBridgingRetain([item pathExtension]), NULL), kUTTypeImage)) {
                         NSData *assetData = [NSData dataWithContentsOfURL:item];
                         //Convert any type of image to jpeg
@@ -493,13 +492,10 @@ didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls{
                         NSData *data = [ImageUtils imageFromImage:convertedImageData withMetaData:metaData];
                         //Save jpeg
                         NSString * filenameWithoutExtension = [filename stringByDeletingPathExtension];
-                        NSString * tmpFile = [NSTemporaryDirectory() stringByAppendingPathComponent:[filenameWithoutExtension stringByAppendingString:@".jpeg"]];
+                        NSString *uniqueFilename = [self uniqueFilenameWithPrefix:filenameWithoutExtension];
+                        NSString * tmpFile = [NSTemporaryDirectory() stringByAppendingPathComponent:[uniqueFilename stringByAppendingString:@".jpeg"]];
                         cachedUrl = [NSURL fileURLWithPath: tmpFile];
 
-                        if([fileManager fileExistsAtPath:tmpFile]) {
-                            [fileManager removeItemAtPath:tmpFile error:nil];
-                        }
-                        
                         if([fileManager createFileAtPath:tmpFile contents:data attributes:nil]) {
                             filename = tmpFile;
                         } else {
@@ -549,6 +545,11 @@ didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls{
         }
         [self handleResult:urls];
     });
+}
+
+- (NSString *)uniqueFilenameWithPrefix:(NSString *)prefix {
+    NSString *uniqueString = [[NSProcessInfo processInfo] globallyUniqueString];
+    return [NSString stringWithFormat:@"%@_%@", prefix, uniqueString];
 }
 
 #endif // PHPicker
