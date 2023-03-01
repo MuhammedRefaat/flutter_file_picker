@@ -10,22 +10,27 @@
 
 @implementation FileUtils
 
-+ (BOOL) clearTemporaryFiles {
-    NSString *tmpDirectory = NSTemporaryDirectory();
-    NSFileManager *fileManager = [NSFileManager defaultManager];
++ (BOOL)clearTemporaryFiles {
+    BOOL success = YES;
     NSError *error;
-    NSArray *cacheFiles = [fileManager contentsOfDirectoryAtPath:tmpDirectory error:&error];
-    
-    for (NSString *file in cacheFiles) {
-        error = nil;
-        [fileManager removeItemAtPath:[tmpDirectory stringByAppendingPathComponent:file] error:&error];
-        if(error != nil) {
-            Log(@"Failed to remove temporary file %@, aborting. Error: %@", file, error);
-            return false;
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSArray *tmpDirectory = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *tempPath = [tmpDirectory objectAtIndex:0];
+    NSArray *directoryContents = [fileManager contentsOfDirectoryAtPath:tempPath error:&error];
+    if(error) {
+        NSLog(@"%@", error.localizedDescription);
+    } else {
+        for(NSString *path in directoryContents) {
+            if ([path hasPrefix:@"image_picker_"]) {
+                NSString *fullPath = [tempPath stringByAppendingPathComponent:path];
+                success &= [fileManager removeItemAtPath:fullPath error:&error];
+                if(error) {
+                    NSLog(@"%@", error.localizedDescription);
+                }
+            }
         }
     }
-    Log(@"All temporary files clear");
-    return true;
+    return success;
 }
 
 + (NSArray<NSString*> *) resolveType:(NSString*)type withAllowedExtensions:(NSArray<NSString*>*) allowedExtensions {
